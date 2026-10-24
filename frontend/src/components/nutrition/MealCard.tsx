@@ -18,6 +18,10 @@ export const MealCard: React.FC<MealCardProps> = ({
   onToggleComplete,
   onOpenSubstitute,
 }) => {
+  if (!meal) {
+    return null;
+  }
+
   return (
     <Card
       className={`transition-all flex flex-col justify-between ${

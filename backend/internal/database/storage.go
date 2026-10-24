@@ -14,21 +14,21 @@ func contextWithTimeout(d time.Duration) (context.Context, context.CancelFunc) {
 }
 
 type MemoryStorage struct {
-	mu            sync.RWMutex
-	Users         map[string]*models.User
-	UsersByEmail  map[string]*models.User
-	Profiles      map[string]*models.UserProfile
-	Preferences   map[string]*models.UserPreferences
-	CycleSettings map[string]*models.CycleSettings
-	Cycles        map[string][]*models.CycleRecord
-	Checkins      map[string]map[string]*models.DailyCheckin // userID -> (date -> checkin)
-	Exercises     map[string]*ExerciseRecord
-	Meals         map[string]*MealRecord
-	Workouts      map[string]*WorkoutRecord
-	Sessions      map[string][]*WorkoutSessionRecord
-	MealLogs           map[string]map[string]bool // userID -> (date_mealID -> bool)
+	mu                 sync.RWMutex
+	Users              map[string]*models.User
+	UsersByEmail       map[string]*models.User
+	Profiles           map[string]*models.UserProfile
+	Preferences        map[string]*models.UserPreferences
+	CycleSettings      map[string]*models.CycleSettings
+	Cycles             map[string][]*models.CycleRecord
+	Checkins           map[string]map[string]*models.DailyCheckin // userID -> (date -> checkin)
+	Exercises          map[string]*ExerciseRecord
+	Meals              map[string]*MealRecord
+	Workouts           map[string]*WorkoutRecord
+	Sessions           map[string][]*WorkoutSessionRecord
+	MealLogs           map[string]map[string]bool           // userID -> (date_mealID -> bool)
 	GamificationStates map[string]*models.GamificationState // userID -> state
-	QuestCompletions   map[string]map[string]bool // userID -> (date_questID -> bool)
+	QuestCompletions   map[string]map[string]bool           // userID -> (date_questID -> bool)
 }
 
 type ExerciseRecord struct {
@@ -54,8 +54,8 @@ type ExerciseRecord struct {
 type MealRecord struct {
 	ID                string           `json:"id"`
 	Title             string           `json:"title"`
-	MealType          string           `json:"meal_type"` // Breakfast, Lunch, Snack, Dinner
-	PhaseTarget       string           `json:"phase_target"` // Menstrual, Follicular, Ovulatory, Luteal, Any
+	MealType          string           `json:"meal_type"`          // Breakfast, Lunch, Snack, Dinner
+	PhaseTarget       string           `json:"phase_target"`       // Menstrual, Follicular, Ovulatory, Luteal, Any
 	DietaryPreference string           `json:"dietary_preference"` // Vegetarian, Eggetarian, Non-vegetarian, Vegan
 	Description       string           `json:"description"`
 	KeyNutrients      []string         `json:"key_nutrients"`
@@ -115,22 +115,24 @@ type WorkoutSessionRecord struct {
 }
 
 func NewMemoryStorage() *MemoryStorage {
-	return &MemoryStorage{
-		Users:         make(map[string]*models.User),
-		UsersByEmail:  make(map[string]*models.User),
-		Profiles:      make(map[string]*models.UserProfile),
-		Preferences:   make(map[string]*models.UserPreferences),
-		CycleSettings: make(map[string]*models.CycleSettings),
-		Cycles:        make(map[string][]*models.CycleRecord),
-		Checkins:      make(map[string]map[string]*models.DailyCheckin),
-		Exercises:     make(map[string]*ExerciseRecord),
-		Meals:         make(map[string]*MealRecord),
-		Workouts:      make(map[string]*WorkoutRecord),
-		Sessions:      make(map[string][]*WorkoutSessionRecord),
+	storage := &MemoryStorage{
+		Users:              make(map[string]*models.User),
+		UsersByEmail:       make(map[string]*models.User),
+		Profiles:           make(map[string]*models.UserProfile),
+		Preferences:        make(map[string]*models.UserPreferences),
+		CycleSettings:      make(map[string]*models.CycleSettings),
+		Cycles:             make(map[string][]*models.CycleRecord),
+		Checkins:           make(map[string]map[string]*models.DailyCheckin),
+		Exercises:          make(map[string]*ExerciseRecord),
+		Meals:              make(map[string]*MealRecord),
+		Workouts:           make(map[string]*WorkoutRecord),
+		Sessions:           make(map[string][]*WorkoutSessionRecord),
 		MealLogs:           make(map[string]map[string]bool),
 		GamificationStates: make(map[string]*models.GamificationState),
 		QuestCompletions:   make(map[string]map[string]bool),
 	}
+	storage.SeedDefaultData()
+	return storage
 }
 
 func (s *MemoryStorage) seedDemoUser() {

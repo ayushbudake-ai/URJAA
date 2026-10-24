@@ -180,14 +180,14 @@ export interface Workout {
   estimated_duration_min: number;
   is_quiet: boolean;
   is_low_impact: boolean;
-  exercises: WorkoutExercise[];
+  exercises?: WorkoutExercise[];
 }
 
 export interface DailyRecommendation {
   date: string;
   cycle_phase: PhaseType;
   cycle_day: number;
-  workout: Workout;
+  workout: Workout | null;
   workout_focus: string;
   intensity_level: string;
   nutrition_focus: string;

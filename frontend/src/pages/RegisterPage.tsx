@@ -23,7 +23,15 @@ export const RegisterPage: React.FC = () => {
       await register(email, password, name);
       navigate('/onboarding');
     } catch (err: any) {
-      setError(err.message || 'Failed to create account');
+      if (
+        err.code === 'USER_EXISTS' ||
+        err.code === 'HTTP_409' ||
+        err.message?.toLowerCase().includes('already exists')
+      ) {
+        setError('An account with this email already exists. Please sign in or use a different email address.');
+      } else {
+        setError(err.message || 'Failed to create account. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -49,8 +57,18 @@ export const RegisterPage: React.FC = () => {
       <div className="mt-7 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white dark:bg-slate-900 py-8 px-6 sm:px-8 rounded-3xl border border-plum-100/80 dark:border-slate-800 shadow-soft">
           {error && (
-            <div className="mb-4 p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 text-xs text-rose-700 dark:text-rose-300">
-              {error}
+            <div className="mb-4 p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 text-xs text-rose-700 dark:text-rose-300">
+              <div className="font-medium">{error}</div>
+              {error.toLowerCase().includes('already exists') && (
+                <div className="mt-2 pt-2 border-t border-rose-200/60 dark:border-rose-900/60">
+                  <Link
+                    to="/login"
+                    className="font-semibold text-rose-700 dark:text-rose-300 underline hover:text-rose-900 dark:hover:text-rose-100 inline-flex items-center gap-1"
+                  >
+                    Go to Sign In &rarr;
+                  </Link>
+                </div>
+              )}
             </div>
           )}
 

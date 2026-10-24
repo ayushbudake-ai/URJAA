@@ -8,7 +8,7 @@ import { CloudinaryMedia } from '../media/CloudinaryMedia';
 import { getMediaForExercise } from '../../constants/mediaManifest';
 
 interface WorkoutCardProps {
-  workout: Workout;
+  workout: Workout | null | undefined;
   onStart: () => void;
   isRecommended?: boolean;
 }
@@ -18,7 +18,18 @@ export const WorkoutCard: React.FC<WorkoutCardProps> = ({
   onStart,
   isRecommended = false,
 }) => {
-  const firstEx = workout.exercises?.[0]?.exercise;
+  if (!workout) {
+    return (
+      <Card className="p-8 text-center bg-white dark:bg-slate-900 border-plum-100/70">
+        <p className="text-sm text-plum-600 dark:text-slate-400">
+          No workout details available right now.
+        </p>
+      </Card>
+    );
+  }
+
+  const exercises = workout.exercises || [];
+  const firstEx = exercises[0]?.exercise;
   const mediaEntry = getMediaForExercise(firstEx?.id, firstEx?.name, workout.category);
 
   return (

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="urjaaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E05375" />
+      <stop offset="100%" stop-color="#F4A5B8" />
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="8" fill="url(#urjaaGrad)" />
+  <path d="M16 23.5l-1.2-1.1C10.5 18.5 7.7 16 7.7 12.8c0-2.5 2-4.5 4.5-4.5 1.4 0 2.8.7 3.8 1.8 1-1.1 2.4-1.8 3.8-1.8 2.5 0 4.5 2 4.5 4.5 0 3.2-2.8 5.7-7.1 9.6L16 23.5z" fill="#FFFFFF" fill-opacity="0.95" />
+  <circle cx="16" cy="14" r="1.5" fill="#FFF1F3" />
+</svg>

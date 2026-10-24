@@ -530,7 +530,7 @@ export const HomePage: React.FC = () => {
 
           {/* 2. Today's Recommended Workout Card */}
           <div className="md:col-span-8">
-            {recommendation ? (
+            {recommendation?.workout ? (
               <WorkoutCard
                 workout={recommendation.workout}
                 isRecommended={true}
@@ -538,7 +538,9 @@ export const HomePage: React.FC = () => {
               />
             ) : (
               <Card className="p-8 text-center bg-white dark:bg-slate-900 border-plum-100/70">
-                <p className="text-sm text-plum-600">No workout recommendation available right now.</p>
+                <p className="text-sm text-plum-600 dark:text-slate-400">
+                  No workout recommendation available right now.
+                </p>
               </Card>
             )}
           </div>
@@ -571,15 +573,18 @@ export const HomePage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {todayMeals.slice(0, 2).map((item) => (
-                <MealCard
-                  key={item.meal.id}
-                  meal={item.meal}
-                  completed={item.completed}
-                  onToggleComplete={() => handleToggleMeal(item.meal.id)}
-                  onOpenSubstitute={() => setSubstituteMeal(item.meal)}
-                />
-              ))}
+              {(todayMeals || [])
+                .filter((item) => !!item?.meal)
+                .slice(0, 2)
+                .map((item) => (
+                  <MealCard
+                    key={item.meal.id}
+                    meal={item.meal}
+                    completed={item.completed}
+                    onToggleComplete={() => handleToggleMeal(item.meal.id)}
+                    onOpenSubstitute={() => setSubstituteMeal(item.meal)}
+                  />
+                ))}
             </div>
           </div>
         </div>

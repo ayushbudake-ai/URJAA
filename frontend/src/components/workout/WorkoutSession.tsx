@@ -36,7 +36,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({
   onExit,
   onFinished,
 }) => {
-  const [exercisesList, setExercisesList] = useState<WorkoutExercise[]>(workout.exercises || []);
+  const [exercisesList, setExercisesList] = useState<WorkoutExercise[]>(workout?.exercises || []);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [sessionState, setSessionState] = useState<SessionState>('PREPARING');
   const [isPaused, setIsPaused] = useState<boolean>(false);
@@ -61,7 +61,7 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({
   const targetReps = currentItem?.target || 10;
   const targetSeconds = currentItem?.target_seconds || 30;
 
-  const currentMedia = getMediaForExercise(currentEx?.id, currentEx?.name, workout.category);
+  const currentMedia = getMediaForExercise(currentEx?.id, currentEx?.name, workout?.category);
 
   // Initialize countdown on exercise change
   useEffect(() => {
@@ -163,6 +163,24 @@ export const WorkoutSession: React.FC<WorkoutSessionProps> = ({
     });
     setIsReplaceOpen(false);
   };
+
+  if (!workout || exercisesList.length === 0) {
+    return (
+      <div className="fixed inset-0 z-50 bg-ivory-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
+        <div className="max-w-md space-y-4">
+          <h2 className="text-xl font-serif font-bold text-plum-950 dark:text-white">
+            No exercises available
+          </h2>
+          <p className="text-sm text-plum-600 dark:text-slate-400">
+            This workout does not have any exercises configured yet.
+          </p>
+          <Button variant="primary" onClick={onExit}>
+            Return to Workouts
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   // Progress Percentage
   const progressPercent = Math.round(((currentIndex + (sessionState === 'REST' ? 1 : 0)) / exercisesList.length) * 100);

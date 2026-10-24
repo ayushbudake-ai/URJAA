@@ -66,7 +66,7 @@ export const WorkoutPage: React.FC = () => {
     return true;
   });
 
-  const recommendedWorkout = workouts.find((w) => w.id === recommendedId) || workouts[0];
+  const recommendedWorkout = workouts.find((w) => w.id === recommendedId) || workouts[0] || null;
 
   if (isLoading) {
     return (
