@@ -321,6 +321,7 @@ func (h *Handler) GetGamification(w http.ResponseWriter, r *http.Request) {
 		state.XPForNextLevel = nextXP
 		state.Quests = h.generatePersonalizedQuests(userID, today)
 		state.LastActiveDate = today
+		state.Achievements = h.evaluateAchievements(userID, state)
 	} else {
 		// Ensure quests reflect current completion status
 		for _, q := range state.Quests {
@@ -328,6 +329,7 @@ func (h *Handler) GetGamification(w http.ResponseWriter, r *http.Request) {
 				q.Completed = true
 			}
 		}
+		state.Achievements = h.evaluateAchievements(userID, state)
 	}
 
 	models.RespondJSON(w, http.StatusOK, state)
@@ -381,6 +383,7 @@ func (h *Handler) CompleteQuest(w http.ResponseWriter, r *http.Request) {
 
 	// Idempotent check: prevent double-rewarding XP
 	if h.DB.Storage.QuestCompletions[userID][completionKey] {
+		state.Achievements = h.evaluateAchievements(userID, state)
 		models.RespondJSON(w, http.StatusOK, map[string]interface{}{
 			"state":      state,
 			"earned_xp":  0,
@@ -415,6 +418,7 @@ func (h *Handler) CompleteQuest(w http.ResponseWriter, r *http.Request) {
 	state.LastActiveDate = today
 
 	h.DB.Storage.QuestCompletions[userID][completionKey] = true
+	state.Achievements = h.evaluateAchievements(userID, state)
 
 	leveledUp := newLevel > oldLevel
 

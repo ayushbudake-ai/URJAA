@@ -63,6 +63,9 @@ func TestGamificationInitialState(t *testing.T) {
 	if len(resp.Data.Quests) != 4 {
 		t.Errorf("Expected 4 daily quests, got %d", len(resp.Data.Quests))
 	}
+	if len(resp.Data.Achievements) != 7 {
+		t.Errorf("Expected 7 achievements, got %d", len(resp.Data.Achievements))
+	}
 }
 
 func TestCompleteQuestAndIdempotency(t *testing.T) {
@@ -127,5 +130,16 @@ func TestCompleteQuestAndIdempotency(t *testing.T) {
 	}
 	if resp2.Data.State.TotalXPEarned != 80 {
 		t.Errorf("Expected total XP to remain 80, got %d", resp2.Data.State.TotalXPEarned)
+	}
+
+	// 3. Verify achievement unlocked
+	firstQuestUnlocked := false
+	for _, ach := range resp2.Data.State.Achievements {
+		if ach.ID == "ach-first-quest" && ach.Unlocked {
+			firstQuestUnlocked = true
+		}
+	}
+	if !firstQuestUnlocked {
+		t.Errorf("Expected 'ach-first-quest' achievement to be unlocked after quest completion")
 	}
 }
