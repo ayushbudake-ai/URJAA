@@ -11,7 +11,40 @@ import {
   generateDemoCalendar,
 } from './mockData';
 
-const API_BASE = '/api/v1';
+/**
+ * Resolves and normalizes the API base URL from VITE_API_URL.
+ * Supports:
+ * - Unset or empty: fallback to local '/api/v1' (uses Vite dev proxy to localhost:8080)
+ * - Base host without prefix (e.g. 'https://urjaa.onrender.com'):
+ *   safely appends '/api/v1'
+ * - Base host already ending with '/api/v1' (e.g. 'https://urjaa.onrender.com/api/v1'):
+ *   preserves it without duplicating '/api/v1'
+ * - Base host ending with '/api' (e.g. 'https://urjaa.onrender.com/api'):
+ *   appends '/v1'
+ * - Trailing slashes on any configuration are automatically cleaned up.
+ */
+export function getApiBaseUrl(): string {
+  const envUrl = (import.meta.env.VITE_API_URL || '').trim();
+
+  if (!envUrl) {
+    return '/api/v1';
+  }
+
+  // Strip trailing slashes
+  const cleanUrl = envUrl.replace(/\/+$/, '');
+
+  if (cleanUrl.endsWith('/api/v1')) {
+    return cleanUrl;
+  }
+
+  if (cleanUrl.endsWith('/api')) {
+    return `${cleanUrl}/v1`;
+  }
+
+  return `${cleanUrl}/api/v1`;
+}
+
+export const API_BASE = getApiBaseUrl();
 
 export class APIClientError extends Error {
   code: string;
@@ -30,8 +63,11 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     ...options.headers,
   };
 
+  const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = `${API_BASE}${path}`;
+
   try {
-    const response = await fetch(`${API_BASE}${endpoint}`, {
+    const response = await fetch(url, {
       ...options,
       headers,
     });
