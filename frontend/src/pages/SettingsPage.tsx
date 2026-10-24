@@ -9,10 +9,8 @@ import {
   Sun,
   Moon,
   Sparkles,
-  Bot,
   CheckCircle2,
   ShieldCheck,
-  RotateCcw,
 } from 'lucide-react';
 import { MEDICAL_DISCLAIMER } from '../constants';
 import { CompanionOrb } from '../components/companion/CompanionOrb';
@@ -22,43 +20,63 @@ export const SettingsPage: React.FC = () => {
   const { theme, setTheme } = useTheme();
 
   // Companion personalization
-  const [companionName, setCompanionName] = useState<string>(
+  const [companionName, setCompanionName] = useState(
     profile?.companion_name || 'Aura'
   );
-  const [companionTone, setCompanionTone] = useState<string>('Gentle & Nurturing');
+  const [companionTone, setCompanionTone] = useState(
+    'Gentle & Nurturing'
+  );
 
-  // Notification toggles
-  const [notifyPeriod, setNotifyPeriod] = useState<boolean>(preferences?.notify_period ?? true);
-  const [notifyCheckin, setNotifyCheckin] = useState<boolean>(preferences?.notify_checkin ?? true);
-  const [notifyHydration, setNotifyHydration] = useState<boolean>(preferences?.notify_hydration ?? true);
-  const [notifyWorkout, setNotifyWorkout] = useState<boolean>(preferences?.notify_workout ?? true);
-  const [notifyNutrition, setNotifyNutrition] = useState<boolean>(preferences?.notify_nutrition ?? true);
-  const [notifyInsights, setNotifyInsights] = useState<boolean>(preferences?.notify_insights ?? true);
+  // Notification preferences
+  const [notifyPeriod, setNotifyPeriod] = useState(
+    preferences?.notify_period ?? true
+  );
+  const [notifyCheckin, setNotifyCheckin] = useState(
+    preferences?.notify_checkin ?? true
+  );
+  const [notifyHydration, setNotifyHydration] = useState(
+    preferences?.notify_hydration ?? true
+  );
+  const [notifyWorkout, setNotifyWorkout] = useState(
+    preferences?.notify_workout ?? true
+  );
+  const [notifyNutrition, setNotifyNutrition] = useState(
+    preferences?.notify_nutrition ?? true
+  );
+  const [notifyInsights, setNotifyInsights] = useState(
+    preferences?.notify_insights ?? true
+  );
 
-  // App flags
-  const [quietMode, setQuietMode] = useState<boolean>(preferences?.quiet_mode ?? false);
-  const [pcosMode, setPcosMode] = useState<boolean>(profile?.pcos_pcod_mode ?? false);
+  // App preferences
+  const [quietMode, setQuietMode] = useState(
+    preferences?.quiet_mode ?? false
+  );
+  const [pcosMode, setPcosMode] = useState(
+    profile?.pcos_pcod_mode ?? false
+  );
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isSaved, setIsSaved] = useState<boolean>(false);
-  const [isClearing, setIsClearing] = useState<boolean>(false);
-  const [clearSuccess, setClearSuccess] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   useEffect(() => {
     if (preferences) {
-      setNotifyPeriod(preferences.notify_period);
-      setNotifyCheckin(preferences.notify_checkin);
-      setNotifyHydration(preferences.notify_hydration);
-      setNotifyWorkout(preferences.notify_workout);
-      setNotifyNutrition(preferences.notify_nutrition);
-      setNotifyInsights(preferences.notify_insights);
-      setQuietMode(preferences.quiet_mode);
+      setNotifyPeriod(preferences.notify_period ?? true);
+      setNotifyCheckin(preferences.notify_checkin ?? true);
+      setNotifyHydration(preferences.notify_hydration ?? true);
+      setNotifyWorkout(preferences.notify_workout ?? true);
+      setNotifyNutrition(preferences.notify_nutrition ?? true);
+      setNotifyInsights(preferences.notify_insights ?? true);
+      setQuietMode(preferences.quiet_mode ?? false);
+
       if (preferences.companion_name) {
         setCompanionName(preferences.companion_name);
       }
     }
+
     if (profile) {
-      setPcosMode(profile.pcos_pcod_mode);
+      setPcosMode(profile.pcos_pcod_mode ?? false);
+
       if (profile.companion_name) {
         setCompanionName(profile.companion_name);
       }
@@ -67,11 +85,16 @@ export const SettingsPage: React.FC = () => {
 
   const handleSave = async () => {
     setIsLoading(true);
+    setIsSaved(false);
+    setSaveError('');
+
     try {
+      const safeName = companionName.trim() || 'Aura';
+
       await api.updateSettings({
         theme_preference: theme,
         quiet_mode: quietMode,
-        companion_name: companionName.trim() || 'Aura',
+        companion_name: safeName,
         notify_period: notifyPeriod,
         notify_checkin: notifyCheckin,
         notify_hydration: notifyHydration,
@@ -81,38 +104,59 @@ export const SettingsPage: React.FC = () => {
       });
 
       await api.updateProfile({
-        companion_name: companionName.trim() || 'Aura',
+        companion_name: safeName,
         pcos_pcod_mode: pcosMode,
       });
 
       await refreshUserData();
+
+      setCompanionName(safeName);
       setIsSaved(true);
-      setTimeout(() => setIsSaved(false), 2500);
-    } catch (err) {
-      console.error('Failed to save settings', err);
+
+      window.setTimeout(() => {
+        setIsSaved(false);
+      }, 2500);
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+      setSaveError(
+        'Could not save settings. Please check your connection and try again.'
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
-  const nameSuggestions = ['Aura', 'Mira', 'Nova', 'Sol', 'Lyra', 'Zephyr'];
+  const nameSuggestions = [
+    'Aura',
+    'Mira',
+    'Nova',
+    'Sol',
+    'Lyra',
+    'Zephyr',
+  ];
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 animate-in fade-in duration-300">
-      {/* Top Header */}
+      {/* Header */}
       <div className="pb-2 border-b border-plum-100/70 dark:border-slate-800">
         <div className="flex items-center gap-2 text-xs font-semibold text-plum-600 dark:text-slate-400 mb-1">
           <Settings className="w-4 h-4 text-urjaa-rose" />
-          <span className="uppercase tracking-wider font-mono text-[11px]">Preferences & Companions</span>
+          <span className="uppercase tracking-wider font-mono text-[11px]">
+            Preferences & Companions
+          </span>
         </div>
+
         <h1 className="text-2xl sm:text-3xl font-serif font-bold text-plum-950 dark:text-white tracking-tight">
           Application Settings
         </h1>
+
         <p className="text-xs sm:text-sm text-plum-600 dark:text-slate-400 mt-1">
-          Customize your AI companion, appearance theme, PCOS accommodations, and daily notifications.
+          Customize your AI companion, appearance, personal preferences, and
+          daily notifications.
         </p>
       </div>
 
+      {/* Success message */}
       {isSaved && (
         <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
@@ -120,69 +164,100 @@ export const SettingsPage: React.FC = () => {
         </div>
       )}
 
-      {/* 1. AI Companion Personalization Card */}
-      <div className="rounded-3xl border border-urjaa-lavender/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-soft space-y-4">
-        <div className="flex items-center justify-between">
+      {/* Error message */}
+      {saveError && (
+        <div
+          role="alert"
+          className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300"
+        >
+          {saveError}
+        </div>
+      )}
+
+      {/* 1. AI Companion Personalization */}
+      <section className="rounded-3xl border border-urjaa-lavender/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-soft space-y-4">
+        <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="p-1.5 rounded-2xl bg-urjaa-lavender/30 border border-urjaa-lavender/60">
-              <CompanionOrb name={companionName} state="welcome" size={44} />
+              <CompanionOrb
+                name={companionName}
+                state="welcome"
+                size={44}
+              />
             </div>
+
             <div>
               <h3 className="font-serif font-bold text-base text-plum-950 dark:text-white">
                 AI Companion Identity
               </h3>
+
               <p className="text-xs text-plum-600 dark:text-slate-400">
-                Attuned to your cycle phases, affirmations, and personalized rhythm.
+                Personalize your companion experience.
               </p>
             </div>
           </div>
+
           <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-urjaa-lavender/50 text-urjaa-plum">
-            Active: {companionName}
+            Active: {companionName || 'Aura'}
           </span>
         </div>
 
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-plum-600 dark:text-slate-400 mb-1.5">
+          <label
+            htmlFor="companion-name"
+            className="block text-xs font-semibold uppercase tracking-wider text-plum-600 dark:text-slate-400 mb-1.5"
+          >
             Companion Name
           </label>
+
           <input
+            id="companion-name"
             type="text"
             value={companionName}
-            onChange={(e) => setCompanionName(e.target.value)}
+            onChange={(event) => setCompanionName(event.target.value)}
             placeholder="e.g. Aura"
             maxLength={24}
             className="w-full px-3.5 py-2.5 rounded-xl bg-urjaa-ivory/60 dark:bg-slate-800 border border-plum-200 dark:border-slate-700 text-sm text-plum-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-urjaa-rose"
           />
-          <div className="flex items-center gap-1.5 mt-2">
-            <span className="text-[10px] text-plum-500">Quick options:</span>
-            {nameSuggestions.map((opt) => (
+
+          <div className="flex flex-wrap items-center gap-1.5 mt-2">
+            <span className="text-[10px] text-plum-500">
+              Quick options:
+            </span>
+
+            {nameSuggestions.map((option) => (
               <button
-                key={opt}
+                key={option}
                 type="button"
-                onClick={() => setCompanionName(opt)}
+                onClick={() => setCompanionName(option)}
                 className={`text-[10px] px-2 py-0.5 rounded-lg border transition-all ${
-                  companionName === opt
+                  companionName === option
                     ? 'bg-urjaa-lavender text-urjaa-plum border-urjaa-lavender font-bold'
                     : 'bg-white dark:bg-slate-800 text-plum-600 border-plum-100'
                 }`}
               >
-                {opt}
+                {option}
               </button>
             ))}
           </div>
         </div>
 
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-plum-600 dark:text-slate-400 mb-1.5">
+          <span className="block text-xs font-semibold uppercase tracking-wider text-plum-600 dark:text-slate-400 mb-1.5">
             Supportive Tone
-          </label>
-          <div className="grid grid-cols-3 gap-2">
-            {['Gentle & Nurturing', 'Mindful & Grounded', 'Direct & Motivating'].map((tone) => (
+          </span>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            {[
+              'Gentle & Nurturing',
+              'Mindful & Grounded',
+              'Direct & Motivating',
+            ].map((tone) => (
               <button
                 key={tone}
                 type="button"
                 onClick={() => setCompanionTone(tone)}
-                className={`py-2 px-1 rounded-xl text-xs font-semibold border text-center transition-all ${
+                className={`py-2 px-2 rounded-xl text-xs font-semibold border text-center transition-all ${
                   companionTone === tone
                     ? 'border-urjaa-lavender bg-urjaa-lavender/40 text-urjaa-plum shadow-subtle'
                     : 'border-plum-100 dark:border-slate-800 bg-white dark:bg-slate-800 text-plum-600'
@@ -192,52 +267,64 @@ export const SettingsPage: React.FC = () => {
               </button>
             ))}
           </div>
+
+          <p className="text-[10px] text-plum-500 dark:text-slate-400 mt-2">
+            Tone selection is currently a local UI preference.
+          </p>
         </div>
-      </div>
+      </section>
 
       {/* 2. Theme Selection */}
-      <div className="rounded-3xl border border-plum-100/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-soft">
-        <label className="block text-xs font-semibold uppercase tracking-wider text-plum-600 dark:text-slate-400 mb-3">
+      <section className="rounded-3xl border border-plum-100/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-soft">
+        <h3 className="block text-xs font-semibold uppercase tracking-wider text-plum-600 dark:text-slate-400 mb-3">
           Appearance & Theme
-        </label>
-        <div className="grid grid-cols-3 gap-3">
+        </h3>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
             { id: 'light', label: 'Light Mode', icon: Sun },
             { id: 'dark', label: 'Dark Mode', icon: Moon },
             { id: 'system', label: 'System Default', icon: Sparkles },
-          ].map((t) => {
-            const Icon = t.icon;
+          ].map((option) => {
+            const Icon = option.icon;
+
             return (
               <button
-                key={name}
+                key={option.id}
                 type="button"
-                onClick={() => setTheme(t.id as any)}
-                className={`py-3 px-3 rounded-2xl text-xs font-semibold flex flex-col items-center gap-2 transition-all ${
-                  theme === t.id
+                onClick={() => setTheme(option.id as typeof theme)}
+                aria-pressed={theme === option.id}
+                className={`py-3 px-3 rounded-2xl text-xs font-semibold flex flex-col items-center gap-2 border transition-all ${
+                  theme === option.id
                     ? 'border-urjaa-rose bg-urjaa-blush/40 text-plum-950 dark:border-rose-500 dark:bg-rose-600 dark:text-white shadow-subtle'
                     : 'border-plum-200 dark:border-slate-800 bg-white dark:bg-slate-800 text-plum-600 dark:text-slate-400 hover:border-plum-300'
                 }`}
               >
                 <Icon className="w-4 h-4 text-urjaa-rose" />
-                <span>{t.label}</span>
+                <span>{option.label}</span>
               </button>
-            ))}
-          </div>
+            );
+          })}
         </div>
-      </div>
+      </section>
 
       {/* 3. PCOS / PCOD Mode */}
-      <div className="rounded-3xl border border-plum-100/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-soft">
+      <section className="rounded-3xl border border-plum-100/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-soft">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-plum-950 dark:text-white">PCOS / PCOD Support Mode</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm font-bold text-plum-950 dark:text-white">
+                PCOS / PCOD Support Mode
+              </span>
+
               <span className="px-2 py-0.5 rounded-full bg-urjaa-blush text-[10px] text-urjaa-plum font-semibold">
                 Gentle Protocol
               </span>
             </div>
+
             <p className="text-xs text-plum-600 dark:text-slate-400 mt-1 leading-relaxed">
-              Prioritizes low-cortisol exercise formats, steady resistance training, and low-glycemic, anti-inflammatory meal choices.
+              Enables additional wellness preferences for your personalized
+              experience.
             </p>
           </div>
 
@@ -245,147 +332,168 @@ export const SettingsPage: React.FC = () => {
             <input
               type="checkbox"
               checked={pcosMode}
-              onChange={(e) => setPcosMode(e.target.checked)}
+              onChange={(event) => setPcosMode(event.target.checked)}
               className="sr-only peer"
+              aria-label="Enable PCOS / PCOD Support Mode"
             />
-            <div className="w-11 h-6 bg-plum-200 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-plum-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-urjaa-rose" />
+
+            <div className="w-11 h-6 bg-plum-200 dark:bg-slate-700 rounded-full peer-focus:outline-none peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-urjaa-rose" />
           </label>
         </div>
-      </div>
+      </section>
 
-      {/* 4. Quiet Friendly Workouts */}
-      <div className="rounded-3xl border border-plum-100/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-soft">
+      {/* 4. Quiet Mode */}
+      <section className="rounded-3xl border border-plum-100/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-soft">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-plum-950 dark:text-white">Quiet Mode Default</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm font-bold text-plum-950 dark:text-white">
+                Quiet Mode Default
+              </span>
+
               <span className="px-2 py-0.5 rounded-full bg-urjaa-skyblue/50 text-[10px] text-plum-900 font-semibold">
                 No Jumping
               </span>
             </div>
+
             <p className="text-xs text-plum-600 dark:text-slate-400 mt-1 leading-relaxed">
-              Automatically selects exercises without jumping or loud floor impacts, ideal for apartments or late-evening workouts.
+              Prefer exercises without jumping or loud floor impacts, ideal
+              for apartments or late-evening workouts.
             </p>
           </div>
-          <p className="text-xs text-plum-600 dark:text-slate-400 mt-1 leading-relaxed">
-            Adapts workouts to low-cortisol steady sessions, prioritizes low-glycemic Indian meals, and softens prediction confidence.
-          </p>
-        </div>
 
           <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-1">
             <input
               type="checkbox"
               checked={quietMode}
-              onChange={(e) => setQuietMode(e.target.checked)}
+              onChange={(event) => setQuietMode(event.target.checked)}
               className="sr-only peer"
+              aria-label="Enable Quiet Mode"
             />
-            <div className="w-11 h-6 bg-plum-200 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-plum-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-urjaa-rose" />
+
+            <div className="w-11 h-6 bg-plum-200 dark:bg-slate-700 rounded-full peer-focus:outline-none peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-urjaa-rose" />
           </label>
         </div>
-
-        <label className="relative inline-flex items-center cursor-pointer shrink-0">
-          <input
-            type="checkbox"
-            checked={quietMode}
-            onChange={(e) => setQuietMode(e.target.checked)}
-            className="sr-only peer"
-          />
-          <div className="w-11 h-6 bg-plum-200 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-plum-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-urjaa-rose" />
-        </label>
-      </div>
+      </section>
 
       {/* 5. Notification Preferences */}
-      <div className="rounded-3xl border border-plum-100/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-soft space-y-3">
+      <section className="rounded-3xl border border-plum-100/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-soft space-y-3">
         <div className="flex items-center gap-2 text-plum-950 dark:text-white font-bold text-sm mb-1">
           <Bell className="w-4 h-4 text-urjaa-rose" />
           <span>Notifications & Daily Reminders</span>
         </div>
 
         {[
-          { label: 'Upcoming Cycle & Period Notice', checked: notifyPeriod, setter: setNotifyPeriod },
-          { label: 'Daily 20-Second Check-in Reminder', checked: notifyCheckin, setter: setNotifyCheckin },
-          { label: 'Gentle Hydration Prompts', checked: notifyHydration, setter: setNotifyHydration },
-          { label: 'Today’s Workout Movement Suggestion', checked: notifyWorkout, setter: setNotifyWorkout },
-          { label: 'Meal & Nutrition Recipe Ideas', checked: notifyNutrition, setter: setNotifyNutrition },
-          { label: 'Weekly Rhythm & Health Insights', checked: notifyInsights, setter: setNotifyInsights },
-        ].map((item, idx) => (
-          <div key={idx} className="flex items-center justify-between py-2 border-b border-plum-100/60 dark:border-slate-800 last:border-0 text-xs">
-            <span className="text-plum-800 dark:text-slate-300 font-medium">{item.label}</span>
+          {
+            label: 'Upcoming Cycle & Period Notice',
+            checked: notifyPeriod,
+            setter: setNotifyPeriod,
+          },
+          {
+            label: 'Daily 20-Second Check-in Reminder',
+            checked: notifyCheckin,
+            setter: setNotifyCheckin,
+          },
+          {
+            label: 'Gentle Hydration Prompts',
+            checked: notifyHydration,
+            setter: setNotifyHydration,
+          },
+          {
+            label: "Today's Workout Movement Suggestion",
+            checked: notifyWorkout,
+            setter: setNotifyWorkout,
+          },
+          {
+            label: 'Meal & Nutrition Recipe Ideas',
+            checked: notifyNutrition,
+            setter: setNotifyNutrition,
+          },
+          {
+            label: 'Weekly Rhythm & Health Insights',
+            checked: notifyInsights,
+            setter: setNotifyInsights,
+          },
+        ].map((item) => (
+          <label
+            key={item.label}
+            className="flex items-center justify-between gap-3 py-2 border-b border-plum-100/60 dark:border-slate-800 last:border-0 text-xs cursor-pointer"
+          >
+            <span className="text-plum-800 dark:text-slate-300 font-medium">
+              {item.label}
+            </span>
+
             <input
               type="checkbox"
               checked={item.checked}
-              onChange={(e) => item.setter(e.target.checked)}
+              onChange={(event) => item.setter(event.target.checked)}
               className="w-4 h-4 rounded text-urjaa-rose bg-white dark:bg-slate-800 border-plum-300 focus:ring-urjaa-rose"
             />
-          </div>
+          </label>
         ))}
-      </div>
+      </section>
 
-      {/* 6. Consent-Based Personalization & Privacy Memory (Stage 6) */}
-      <div className="rounded-3xl border border-plum-100/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-soft space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-pistachio-100 dark:bg-emerald-950/60 flex items-center justify-center text-pistachio-700 dark:text-emerald-300">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
-            <div>
-              <h3 className="font-serif font-bold text-base text-plum-950 dark:text-white">
-                Personalization & Privacy Memory
-              </h3>
-              <p className="text-xs text-plum-600 dark:text-slate-400">
-                Transparent memory used to personalize workouts, Indian meals, and Aura guidance.
-              </p>
-            </div>
+      {/* 6. Personalization & Privacy */}
+      <section className="rounded-3xl border border-plum-100/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-soft space-y-4">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-700 dark:text-emerald-300">
+            <ShieldCheck className="w-4 h-4" />
           </div>
-          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-pistachio-100 dark:bg-emerald-900/40 text-pistachio-800 dark:text-emerald-300">
-            Account-Scoped
-          </span>
+
+          <div>
+            <h3 className="font-serif font-bold text-base text-plum-950 dark:text-white">
+              Personalization & Privacy
+            </h3>
+
+            <p className="text-xs text-plum-600 dark:text-slate-400">
+              Review the profile information used for personalization.
+            </p>
+          </div>
         </div>
-
-        {clearSuccess && (
-          <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            <span>Personalization history cleared. Baseline recommendations restored without affecting your earned XP or levels.</span>
-          </div>
-        )}
 
         <div className="p-4 rounded-2xl bg-ivory-50 dark:bg-slate-800/60 border border-plum-100/60 dark:border-slate-700/60 space-y-2 text-xs">
-          <div className="flex justify-between py-1 border-b border-plum-100/40 dark:border-slate-700/40">
-            <span className="text-plum-600 dark:text-slate-400">Primary Goal:</span>
-            <span className="font-semibold text-plum-950 dark:text-white">{profile?.primary_goal || profile?.wellness_goal || 'Build strength'}</span>
+          <div className="flex justify-between gap-3 py-1 border-b border-plum-100/40 dark:border-slate-700/40">
+            <span className="text-plum-600 dark:text-slate-400">
+              Primary Goal:
+            </span>
+
+            <span className="font-semibold text-plum-950 dark:text-white text-right">
+              {profile?.primary_goal ||
+                profile?.wellness_goal ||
+                'Build strength'}
+            </span>
           </div>
-          <div className="flex justify-between py-1 border-b border-plum-100/40 dark:border-slate-700/40">
-            <span className="text-plum-600 dark:text-slate-400">Experience & Duration:</span>
-            <span className="font-semibold text-plum-950 dark:text-white">{profile?.fitness_level || 'Beginner'} • {profile?.preferred_workout_duration || 15} min</span>
+
+          <div className="flex justify-between gap-3 py-1 border-b border-plum-100/40 dark:border-slate-700/40">
+            <span className="text-plum-600 dark:text-slate-400">
+              Experience & Duration:
+            </span>
+
+            <span className="font-semibold text-plum-950 dark:text-white text-right">
+              {profile?.fitness_level || 'Beginner'} •{' '}
+              {profile?.preferred_workout_duration || 15} min
+            </span>
           </div>
-          <div className="flex justify-between py-1 border-b border-plum-100/40 dark:border-slate-700/40">
-            <span className="text-plum-600 dark:text-slate-400">Nutrition Preference:</span>
-            <span className="font-semibold text-plum-950 dark:text-white">{profile?.dietary_preference || 'Vegetarian'}</span>
-          </div>
-          <div className="flex justify-between py-1">
-            <span className="text-plum-600 dark:text-slate-400">Privacy Guarantee:</span>
-            <span className="font-semibold text-emerald-700 dark:text-emerald-400">Never added to public AI models</span>
+
+          <div className="flex justify-between gap-3 py-1">
+            <span className="text-plum-600 dark:text-slate-400">
+              Nutrition Preference:
+            </span>
+
+            <span className="font-semibold text-plum-950 dark:text-white text-right">
+              {profile?.dietary_preference || 'Vegetarian'}
+            </span>
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-1">
-          <p className="text-[11px] text-plum-500 dark:text-slate-400 max-w-sm">
-            You can clear recommendation memory anytime. Your profile and lifetime XP will remain intact.
-          </p>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleClearPersonalization}
-            disabled={isClearing}
-            className="text-xs text-rose-600 border-rose-200 hover:bg-rose-50 dark:border-rose-900/60"
-          >
-            <RotateCcw className="w-3 h-3 mr-1" />
-            <span>{isClearing ? 'Clearing...' : 'Clear History'}</span>
-          </Button>
-        </div>
-      </div>
+        <p className="text-[11px] text-plum-500 dark:text-slate-400 leading-relaxed">
+          Your settings are associated with your account. Data deletion
+          controls should only be enabled when the corresponding backend
+          functionality is implemented.
+        </p>
+      </section>
 
-      {/* Save Button */}
+      {/* Save Settings */}
       <Button
         variant="blush"
         size="lg"
@@ -396,7 +504,7 @@ export const SettingsPage: React.FC = () => {
         {isLoading ? 'Saving...' : 'Save Settings'}
       </Button>
 
-      {/* Disclaimer */}
+      {/* Medical Disclaimer */}
       <p className="text-[10px] text-plum-400 dark:text-slate-400 text-center leading-relaxed mt-4 max-w-xl mx-auto">
         {MEDICAL_DISCLAIMER}
       </p>
